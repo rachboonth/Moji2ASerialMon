@@ -1,7 +1,5 @@
 package com.example.android.mojicnc;
 
-
-
 /*
 Android Example to connect to and communicate with Bluetooth
 In this exercise, the target is a Arduino Due + HC-06 (Bluetooth Module)
@@ -39,6 +37,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+
 
 public class MainActivity extends ActionBarActivity {
 
