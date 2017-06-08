@@ -13,13 +13,37 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.example.android.mojicnc.DeviceList">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+
+                <action android:name="android.intent.action.GET_CONTENT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
+        <activity android:name="com.example.android.mojicnc.MainActivity"   android:label="BT-Serial" ></activity>
+
+        <provider
+            android:name="com.example.android.mojicnc.LocalStorageProvider"
+            android:authorities="com.example.android.mojicnc.localstorage.documents"
+            android:enabled="@bool/use_provider"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS" />
+        <intent-filter>
+            <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+        </intent-filter>
+
+
     </application>
 
 </manifest>

@@ -10,9 +10,11 @@ http://android-er.blogspot.com/2014/12/make-bluetooth-connection-between.html
 - Bluetooth communication between Android devices
 http://android-er.blogspot.com/2014/12/bluetooth-communication-between-android.html
  */
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
@@ -28,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -38,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -45,7 +49,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Timer;
 import java.util.UUID;
+
+import static com.example.android.mojicnc.R.id.BTsend;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -53,6 +60,7 @@ public class MainActivity extends ActionBarActivity {
     private static final int REQUEST_ENABLE_BT = 1;
 
     BluetoothAdapter bluetoothAdapter;
+    BluetoothSocket BTsocket = null;
 
     ArrayList<BluetoothDevice> pairedDeviceArrayList;
 
@@ -60,7 +68,7 @@ public class MainActivity extends ActionBarActivity {
     ListView listViewPairedDevice;
     LinearLayout inputPane;
     EditText inputField;
-    Button btnSend, btnClear;
+    Button btnSend, btnClear, BTsend;
     Button myOpenFileButton;
 
     String sentText;
@@ -91,6 +99,7 @@ public class MainActivity extends ActionBarActivity {
         inputField = (EditText)findViewById(R.id.input);
         btnSend = (Button)findViewById(R.id.send);
         myOpenFileButton = (Button) findViewById(R.id.openFile) ;
+        BTsend = (Button) findViewById(R.id.BTsend) ;
 
 
 
@@ -104,14 +113,23 @@ public class MainActivity extends ActionBarActivity {
                     byte[] NewLine = "\n".getBytes();
                     myThreadConnected.write(NewLine);
                     sentText = inputField.getText().toString();
-                    textByteCnt.append(sentText + " *SENT");
-                    textStatus.append(sentText + " \n");
+                    //textByteCnt.append(sentText + " *SENT");
+                    textStatus.append(sentText + " *Sent\n");
                 }
             }});
+
+        BTsend.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                sendBTData();   //method to turn off
+            }
+        });
+
         myOpenFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showChooser();      //method to turn on
+                textStatus2.setText("");
             }
         });
 
@@ -150,7 +168,7 @@ public class MainActivity extends ActionBarActivity {
 
         String stInfo = bluetoothAdapter.getName() + "\n" +
                 bluetoothAdapter.getAddress();
-        textInfo.setText(stInfo);
+       // textInfo.setText(stInfo);
     }
 
     @Override
@@ -169,13 +187,13 @@ public class MainActivity extends ActionBarActivity {
     private void setup() {
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
-            pairedDeviceArrayList = new ArrayList<BluetoothDevice>();
+            pairedDeviceArrayList = new ArrayList<>();
 
             for (BluetoothDevice device : pairedDevices) {
                 pairedDeviceArrayList.add(device);
             }
 
-            pairedDeviceAdapter = new ArrayAdapter<BluetoothDevice>(this,
+            pairedDeviceAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_list_item_1, pairedDeviceArrayList);
             listViewPairedDevice.setAdapter(pairedDeviceAdapter);
 
@@ -225,6 +243,46 @@ public class MainActivity extends ActionBarActivity {
 //        }
 //    }
 
+
+
+    private void sendBTData() {
+        if (myThreadConnected != null) {
+            try {
+                File sdcard = Environment.getExternalStorageDirectory();
+                Log.e("FILE LOCATIO",sdcard.toString());
+                Log.e("BEEEEEEEEE",Environment.getExternalStorageDirectory().toString());
+
+                //Get the text file
+                File file = new File(sdcard,"moji.txt");
+
+                //Read text from file
+                final StringBuilder text = new StringBuilder();
+
+                BufferedReader br = new BufferedReader(new FileReader(pathFileTemp));
+                String line;
+                Log.e("myfileTest",file.toString());
+                Log.e("myBrTest",br.toString());
+                text.append("moji.txt");
+                while ((line = br.readLine()) != null) {
+                    text.append(line);
+                    byte[] lineToSend = line.toString().getBytes();
+                    myThreadConnected.BTsendText((line));
+                   // byte[] NewLine = "\n".getBytes();
+                   // myThreadConnected.write(NewLine);
+
+                    Log.e("BEEEEEEE",line);
+                    text.append('\n');
+                    textStatus.append("\n");
+
+                }
+
+                br.close();
+            }
+            catch (IOException e) {
+                msg("Error");
+            }
+        }
+    }
     private void showChooser() {
         // Use the GET_CONTENT intent from the utility class
         Intent target = FileUtils.createGetContentIntent();
@@ -291,8 +349,12 @@ public class MainActivity extends ActionBarActivity {
                           //  tv.setText(text.toString());
                            // BTsend.setVisibility(View.VISIBLE); /** Show BTsend button when selected a file **/
 
-                            textByteCnt.setText(text.toString());
-                            textByteCnt.setMovementMethod(new ScrollingMovementMethod());
+//                            textByteCnt.setText(text.toString());
+//                            textByteCnt.setMovementMethod(new ScrollingMovementMethod());
+
+
+                            textStatus.setText(text.toString());
+                            textStatus.setMovementMethod(new ScrollingMovementMethod());
                             //=================================== BEE EDIT ===================================
 
                         } catch (Exception e) {
@@ -465,18 +527,22 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            final byte[] buffer = new byte[1024];
+//            final byte[] buffer = new byte[1024];
+            final byte[] buffer = new byte[4096];
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream is;
             int bytes;
             String strRx = "";
 
             while (true) {
+
                 try {
+
                     bytes = connectedInputStream.read(buffer);
                     final String strText = buffer.toString();
                     final String strReceived = new String(buffer, 0, bytes);
                     final String strByteCnt = String.valueOf(bytes) + " bytes received.\n";
                     runOnUiThread(new Runnable(){
-                       int cnt = 0;
                         @Override
                         public void run() {
 //                            cnt ++;
@@ -486,16 +552,14 @@ public class MainActivity extends ActionBarActivity {
 //                                textByteCnt.append(sentText + " Received\n");
 //
 //                            }
-                            textStatus2.append(strReceived);
 //                          textByteCnt.append(strByteCnt);
                             //textByteCnt.append(sentText + " Received\n");
-                            if (strReceived.contains("k")){
-                                textByteCnt.append("\n");
-                            }
-                            Log.e("Beeee",sentText);
+//                            Log.e("Beeee",sentText);
                             Log.e("Received :",strReceived);
-
-
+                            if (!strReceived.isEmpty()) {
+                                textStatus2.append(strReceived.toString());
+                            }
+                           // textStatus.append(String.valueOf(cnt));
                         }});
 
 
@@ -522,6 +586,16 @@ public class MainActivity extends ActionBarActivity {
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+            }
+        }
+
+        private void BTsendText(String y){
+            if (connectedBluetoothSocket!=null) {
+                try {
+                    connectedBluetoothSocket.getOutputStream().write(y.toString().getBytes());
+                }
+                catch (IOException e)
+                { msg("Error");}
             }
         }
 

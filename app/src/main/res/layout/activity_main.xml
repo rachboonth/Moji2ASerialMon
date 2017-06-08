@@ -21,11 +21,6 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -33,14 +28,15 @@
                 android:autoLink="web"
                 android:text="Serial Monitor"
                 android:textStyle="bold"
-                android:layout_weight="1"/>
+                android:layout_weight="0"/>
 
             <TextView
                 android:id="@+id/textbyteCnt"
                 android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_weight="1"/>
-            </LinearLayout>
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:visibility="gone"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -52,11 +48,9 @@
                     android:layout_weight="1"/>
                 <TextView
                     android:id="@+id/status2"
-                    android:layout_width="wrap_content"
+                    android:layout_width="10dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"/>
-
-
 
             </LinearLayout>
 
@@ -65,14 +59,16 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0.7"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/info"
                 android:textStyle="bold|italic"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="Paired Devices"
+                android:layout_gravity="center_horizontal"/>
             <ListView
                 android:id="@+id/pairedlist"
                 android:layout_width="match_parent"
@@ -93,17 +89,22 @@
                     android:id="@+id/send"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sent"/>
+                    android:text="Input Send"/>
                 <Button
                     android:id="@+id/clear"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Clear"/>
+                    android:text="Clear all"/>
                 <Button
                     android:id="@+id/openFile"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="OPEN"/>
+                <Button
+                    android:id="@+id/BTsend"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="File Send"/>
 
             </LinearLayout>
 
