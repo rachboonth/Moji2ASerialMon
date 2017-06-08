@@ -10,6 +10,9 @@ http://android-er.blogspot.com/2014/12/make-bluetooth-connection-between.html
 - Bluetooth communication between Android devices
 http://android-er.blogspot.com/2014/12/bluetooth-communication-between-android.html
  */
+import android.content.ActivityNotFoundException;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
@@ -20,7 +23,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -31,6 +37,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,13 +56,17 @@ public class MainActivity extends ActionBarActivity {
 
     ArrayList<BluetoothDevice> pairedDeviceArrayList;
 
-    TextView textInfo, textStatus, textByteCnt;
+    TextView textInfo, textStatus, textStatus2, textByteCnt;
     ListView listViewPairedDevice;
     LinearLayout inputPane;
     EditText inputField;
     Button btnSend, btnClear;
+    Button myOpenFileButton;
 
     String sentText;
+    private static final String TAG = "MainActivity";
+    private static final int REQUEST_CODE = 6384; // onActivityResult request
+    String pathFileTemp;
 
     ArrayAdapter<BluetoothDevice> pairedDeviceAdapter;
     private UUID myUUID;
@@ -70,12 +83,14 @@ public class MainActivity extends ActionBarActivity {
 
         textInfo = (TextView)findViewById(R.id.info);
         textStatus = (TextView)findViewById(R.id.status);
+        textStatus2 = (TextView)findViewById(R.id.status2);
         textByteCnt = (TextView)findViewById(R.id.textbyteCnt);
         listViewPairedDevice = (ListView)findViewById(R.id.pairedlist);
 
         inputPane = (LinearLayout)findViewById(R.id.inputpane);
         inputField = (EditText)findViewById(R.id.input);
         btnSend = (Button)findViewById(R.id.send);
+        myOpenFileButton = (Button) findViewById(R.id.openFile) ;
 
 
 
@@ -90,15 +105,26 @@ public class MainActivity extends ActionBarActivity {
                     myThreadConnected.write(NewLine);
                     sentText = inputField.getText().toString();
                     textByteCnt.append(sentText + " *SENT");
+                    textStatus.append(sentText + " \n");
                 }
             }});
+        myOpenFileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showChooser();      //method to turn on
+            }
+        });
+
+
 
         btnClear = (Button)findViewById(R.id.clear);
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 textStatus.setText("");
+                textStatus2.setText("");
                 textByteCnt.setText("");
+
             }
         });
 
@@ -185,19 +211,130 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if(requestCode==REQUEST_ENABLE_BT){
+//            if(resultCode == Activity.RESULT_OK){
+//                setup();
+//            }else{
+//                Toast.makeText(this,
+//                        "BlueTooth NOT enabled",
+//                        Toast.LENGTH_SHORT).show();
+//                finish();
+//            }
+//        }
+//    }
+
+    private void showChooser() {
+        // Use the GET_CONTENT intent from the utility class
+        Intent target = FileUtils.createGetContentIntent();
+        // Create the chooser Intent
+        Intent intent = Intent.createChooser(
+                target, getString(R.string.chooser_title));
+        try {
+            startActivityForResult(intent, REQUEST_CODE);
+        } catch (ActivityNotFoundException e) {
+            // The reason for the existence of aFileChooser
+        }
+
+    }
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode==REQUEST_ENABLE_BT){
-            if(resultCode == Activity.RESULT_OK){
-                setup();
-            }else{
-                Toast.makeText(this,
-                        "BlueTooth NOT enabled",
-                        Toast.LENGTH_SHORT).show();
-                finish();
-            }
+        switch (requestCode) {
+            case REQUEST_CODE:
+                // If the file selection was successful
+                if (resultCode == RESULT_OK) {
+                    if (data != null) {
+                        // Get the URI of the selected file
+                        final Uri uri = data.getData();
+                        Log.i(TAG, "Uri = " + uri.toString());
+                        try {
+                            // Get the file path from the URI
+                            final String path = FileUtils.getPath(this, uri);
+                            Toast.makeText(MainActivity.this,
+                                    "File Selected: " + path, Toast.LENGTH_LONG).show();
+                            Log.e("BEEEEE",path);
+                            pathFileTemp = path;
+
+                            //=================================== BEE EDIT ===================================
+                            File sdcard = Environment.getExternalStorageDirectory();
+                            Log.e("FILE LOCATIO",sdcard.toString());
+                            Log.e("BEEEEEEEEE",Environment.getExternalStorageDirectory().toString());
+
+                            //Get the text file
+                            File file = new File(sdcard,"moji.txt");
+
+                            //Read text from file
+                            StringBuilder text = new StringBuilder();
+
+                            try {
+                                BufferedReader br = new BufferedReader(new FileReader(path));
+                                String line;
+
+                                while ((line = br.readLine()) != null) {
+                                    text.append(line);
+                                    text.append('\n');
+                                }
+                                // timeDelay(delayValFinal);
+                                br.close();
+                            }
+                            catch (IOException e) {
+                                //You'll need to add proper error handling here
+                            }
+                            //Find the view by its id
+                            //TextView tv = (TextView)findViewById(R.id.mojiTV1);
+                           // tv.setMovementMethod(new ScrollingMovementMethod()); // Activate mojiTV1 TextView ScrollBar
+
+                            //Set the text
+                          //  tv.setText(text.toString());
+                           // BTsend.setVisibility(View.VISIBLE); /** Show BTsend button when selected a file **/
+
+                            textByteCnt.setText(text.toString());
+                            textByteCnt.setMovementMethod(new ScrollingMovementMethod());
+                            //=================================== BEE EDIT ===================================
+
+                        } catch (Exception e) {
+                            Log.e("FileSelectorTest", "File select error", e);
+
+                        }
+                    }
+                }
+                break;
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
+
+    private void msg(String s)
+    {
+        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_led_control, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
     //Called in ThreadConnectBTdevice once connect successed
     //to start ThreadConnected
@@ -349,7 +486,7 @@ public class MainActivity extends ActionBarActivity {
 //                                textByteCnt.append(sentText + " Received\n");
 //
 //                            }
-                            textStatus.append(strReceived);
+                            textStatus2.append(strReceived);
 //                          textByteCnt.append(strByteCnt);
                             //textByteCnt.append(sentText + " Received\n");
                             if (strReceived.contains("k")){
