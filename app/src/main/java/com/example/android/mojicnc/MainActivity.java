@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.UUID;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.example.android.mojicnc.R.id.BTsend;
 
 
@@ -70,6 +71,7 @@ public class MainActivity extends ActionBarActivity {
     EditText inputField;
     Button btnSend, btnClear, BTsend;
     Button myOpenFileButton;
+    Integer delayValFinal = 500;
 
     String sentText;
     private static final String TAG = "MainActivity";
@@ -122,6 +124,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 sendBTData();   //method to turn off
+                textStatus2.setText("");
             }
         });
 
@@ -244,7 +247,21 @@ public class MainActivity extends ActionBarActivity {
 //    }
 
 
+    public void timeDelay(long t) {
+        try {
+            Thread.sleep(t);
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    //extView tv2 =  (TextView)findViewById(R.id.mojiTV2);
+                    //tv2.append("OK\n");
+                }
+            }, t);
+        } catch (InterruptedException e) {}
 
+    }
     private void sendBTData() {
         if (myThreadConnected != null) {
             try {
@@ -267,9 +284,9 @@ public class MainActivity extends ActionBarActivity {
                     text.append(line);
                     byte[] lineToSend = line.toString().getBytes();
                     myThreadConnected.BTsendText((line));
-                   // byte[] NewLine = "\n".getBytes();
-                   // myThreadConnected.write(NewLine);
-
+                    byte[] NewLine = "\n".getBytes();
+                    myThreadConnected.write(NewLine);
+                    timeDelay(50);
                     Log.e("BEEEEEEE",line);
                     text.append('\n');
                     textStatus.append("\n");
