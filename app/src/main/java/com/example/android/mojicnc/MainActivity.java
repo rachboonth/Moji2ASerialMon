@@ -619,7 +619,7 @@ public class MainActivity extends ActionBarActivity {
                             if(roundCount == 1){
                             myStringArray[0]= myStringArray[0]+myStringArray[1];
                             }
-                            textStatus2.append(strReceived.toString());
+                            //textStatus2.append(strReceived.toString());
 
                             // mconvString =  Arrays.toString(myStringArray);
 //                            mconvString =  stringArrayToString(myStringArray, ",");
@@ -641,17 +641,17 @@ public class MainActivity extends ActionBarActivity {
                                 myStringArray[0] = null;
                                 roundCount = 0;
                                 myUpdateState = true;
-
+                                textStatus2.append("OK\n");
                             }
-                            else if (roundCount > 3) {
+                            else if (roundCount > 2) {
                                 myStringArray[0] = null;
                                 roundCount = 0;
                             }
                             else {
+
                                 myUpdateState = false;
                                 roundCount++;
                             }
-
 
                             Log.e("RoundCounter #: "  ,String.valueOf(roundCount));
                             Log.e("UpdateState  #: "  ,String.valueOf(myUpdateState));
