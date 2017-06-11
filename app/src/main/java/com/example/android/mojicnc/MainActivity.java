@@ -10,6 +10,7 @@ http://android-er.blogspot.com/2014/12/make-bluetooth-connection-between.html
 - Bluetooth communication between Android devices
 http://android-er.blogspot.com/2014/12/bluetooth-communication-between-android.html
  */
+import android.animation.TypeConverter;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.net.Uri;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.Timer;
 import java.util.UUID;
@@ -72,6 +74,13 @@ public class MainActivity extends ActionBarActivity {
     Button btnSend, btnClear, BTsend;
     Button myOpenFileButton;
     Integer delayValFinal = 500;
+
+    int roundCount=0;
+    byte[] myByteArray = new byte[100];
+    String[] myStringArray = new String[10];
+    String mconvString;
+    String myFinalString;
+    boolean myUpdateState = false;
 
     String sentText;
     private static final String TAG = "MainActivity";
@@ -263,6 +272,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
     private void sendBTData() {
+        int sendBTCount = 0;
         if (myThreadConnected != null) {
             try {
                 File sdcard = Environment.getExternalStorageDirectory();
@@ -281,15 +291,22 @@ public class MainActivity extends ActionBarActivity {
                 Log.e("myBrTest",br.toString());
                 text.append("moji.txt");
                 while ((line = br.readLine()) != null) {
+                    if (myFinalString.contains("ok")){
+                        Log.e("My Newest Array: "  ,"IT IS TRUE !!!");
                     text.append(line);
                     byte[] lineToSend = line.toString().getBytes();
                     myThreadConnected.BTsendText((line));
                     byte[] NewLine = "\n".getBytes();
                     myThreadConnected.write(NewLine);
-                    timeDelay(50);
+                   // timeDelay(50);
+                    sendBTCount ++;
                     Log.e("BEEEEEEE",line);
+                    Log.e("SendBT_Count: ",String.valueOf(sendBTCount));
                     text.append('\n');
                     textStatus.append("\n");
+                        myFinalString="";
+                    }
+
 
                 }
 
@@ -299,6 +316,7 @@ public class MainActivity extends ActionBarActivity {
                 msg("Error");
             }
         }
+
     }
     private void showChooser() {
         // Use the GET_CONTENT intent from the utility class
@@ -542,18 +560,50 @@ public class MainActivity extends ActionBarActivity {
             connectedOutputStream = out;
         }
 
+        public  String stringArrayToString( String[] stringArray, String delimiter ) {
+            StringBuilder sb = new StringBuilder();
+            for ( String element : stringArray ) {
+                if (sb.length() > 0) {
+                    sb.append( delimiter );
+                }
+                sb.append( element );
+            }
+            return sb.toString();
+        }
+
+        public  boolean contains(String[] stringArray, String stringToSearch)
+        {
+            int x=0;
+            boolean result = false;
+            if (stringArray != null) return result;
+            for (String element:stringArray) {
+                if ( element.equals( stringToSearch )) {
+                    result = true;
+                    break;
+                }
+            }
+
+            return result;
+
+        }
+
         @Override
         public void run() {
 //            final byte[] buffer = new byte[1024];
             final byte[] buffer = new byte[4096];
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             InputStream is;
-            int bytes;
             String strRx = "";
+
+
+            int bytes;
+
+
 
             while (true) {
 
                 try {
+
 
                     bytes = connectedInputStream.read(buffer);
                     final String strText = buffer.toString();
@@ -573,9 +623,41 @@ public class MainActivity extends ActionBarActivity {
                             //textByteCnt.append(sentText + " Received\n");
 //                            Log.e("Beeee",sentText);
                             Log.e("Received :",strReceived);
-                            if (!strReceived.isEmpty()) {
-                                textStatus2.append(strReceived.toString());
+//                            if (!strReceived.isEmpty()) {
+//                                textStatus2.append(strReceived.toString());
+//                            }
+                            myStringArray[roundCount]= strReceived;
+                            if(roundCount == 1){
+                            myStringArray[0]= myStringArray[0]+myStringArray[1];
                             }
+                            textStatus2.append(strReceived.toString());
+
+                            // mconvString =  Arrays.toString(myStringArray);
+                            mconvString =  stringArrayToString(myStringArray, ",");
+                            //mconvString = mconvString.substring(1, mconvString.length()-1).replaceAll(",", "");
+
+                            textStatus.append(mconvString);
+
+                           // Log.e("HAHAHAHA: "  ,String.valueOf(contains(myStringArray, "ok")));
+//                            if (!myStringArray[1].equals(null) && myStringArray[1].equals("k")){
+//                                Log.e("HAHAHAHA: "  ,String.valueOf(contains(myStringArray, "Apple")));
+//                            }
+                            myFinalString = mconvString.substring(0,2);
+                            Log.e("My New Array: "  ,mconvString);
+                            Log.e("My Newest Array: "  ,myFinalString);
+                            if (myFinalString.contains("ok")){
+                                Log.e("My Newest Array: "  ,"IT IS TRUE !!!");
+                                myFinalString = "";
+                                myStringArray[0] = null;
+                                roundCount = 0;
+
+                            }
+                            else if (roundCount > 5) {
+                                myStringArray[0] = null;
+                                roundCount = 0;
+                            }
+                            else
+                                roundCount++;
                            // textStatus.append(String.valueOf(cnt));
                         }});
 
