@@ -50,10 +50,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.UUID;
 
+import static android.R.id.list;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.example.android.mojicnc.R.id.BTsend;
 
@@ -81,6 +83,9 @@ public class MainActivity extends ActionBarActivity {
     String mconvString;
     String myFinalString;
     boolean myUpdateState = false;
+    String lineTemp;
+    String devicenNameTemp;
+    String Btname = "";
 
     String sentText;
     private static final String TAG = "MainActivity";
@@ -200,9 +205,19 @@ public class MainActivity extends ActionBarActivity {
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             pairedDeviceArrayList = new ArrayList<>();
+            final ArrayList list = new ArrayList();
 
             for (BluetoothDevice device : pairedDevices) {
+
                 pairedDeviceArrayList.add(device);
+                list.add(device.getName() + "\n" + device.getAddress());
+                Btname = "Name: " + device.getName() + "\n"
+                        + "Address: " + device.getAddress() + "\n"
+                        + "BondState: " + device.getBondState() + "\n"
+                        + "BluetoothClass: " + device.getBluetoothClass() + "\n"
+                        + "Class: " + device.getClass();
+
+
             }
 
             pairedDeviceAdapter = new ArrayAdapter<>(this,
@@ -216,13 +231,11 @@ public class MainActivity extends ActionBarActivity {
                                         int position, long id) {
                     BluetoothDevice device =
                             (BluetoothDevice) parent.getItemAtPosition(position);
-                    Toast.makeText(MainActivity.this,
-                            "Name: " + device.getName() + "\n"
-                                    + "Address: " + device.getAddress() + "\n"
-                                    + "BondState: " + device.getBondState() + "\n"
-                                    + "BluetoothClass: " + device.getBluetoothClass() + "\n"
-                                    + "Class: " + device.getClass(),
-                            Toast.LENGTH_LONG).show();
+
+                    Toast.makeText(MainActivity.this,"Connecting . . .",Toast.LENGTH_SHORT).show();
+
+                    devicenNameTemp = String.valueOf(device.getName());
+                    textInfo.setText(devicenNameTemp);
 
                     textStatus.setText("start ThreadConnectBTdevice");
                     myThreadConnectBTdevice = new ThreadConnectBTdevice(device);
@@ -278,10 +291,23 @@ public class MainActivity extends ActionBarActivity {
                 /**[RMK] make show file name and location in views **/
                 text.append("moji.txt");
                 while ((line = br.readLine()) != null ) {
+                    lineTemp = line;
                     Log.e("SentBTFunc"  ,"ItWorks!");
                     text.append(line);
                     byte[] lineToSend = line.toString().getBytes();
-                    myThreadConnected.BTsendText((line));
+                    myThreadConnected.BTsendText((lineTemp));
+                    timeDelay(50);
+
+//                    new Handler().postDelayed(new Runnable() {
+//
+//                        @Override
+//                        public void run() {
+//                            myThreadConnected.BTsendText((lineTemp));
+//                        }
+//                    }, 1000);
+
+
+
                     if (myUpdateState = true) {
                         byte[] NewLine = "\n".getBytes();
                         myThreadConnected.write(NewLine);
@@ -293,6 +319,7 @@ public class MainActivity extends ActionBarActivity {
                         textStatus.append("\n");
                     }
                     else {
+                        timeDelay(30);
                         myThreadConnected.BTsendText((line));
 
                     }
@@ -641,7 +668,8 @@ public class MainActivity extends ActionBarActivity {
                                 myStringArray[0] = null;
                                 roundCount = 0;
                                 myUpdateState = true;
-                                textStatus2.append("OK\n");
+//                                textStatus2.append("OK\n");
+                                textStatus2.append("o"+strReceived.toString());
                             }
                             else if (roundCount > 2) {
                                 myStringArray[0] = null;
