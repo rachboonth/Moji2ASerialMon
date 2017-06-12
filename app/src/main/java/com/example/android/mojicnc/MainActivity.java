@@ -58,6 +58,7 @@ import java.util.UUID;
 import static android.R.id.list;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.example.android.mojicnc.R.id.BTsend;
+import static com.example.android.mojicnc.R.id.time;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -83,6 +84,7 @@ public class MainActivity extends ActionBarActivity {
     String mconvString;
     String myFinalString;
     boolean myUpdateState = false;
+    int myUpdateRound = 0;
     String lineTemp;
     String devicenNameTemp;
     String Btname = "";
@@ -296,7 +298,7 @@ public class MainActivity extends ActionBarActivity {
                     text.append(line);
                     byte[] lineToSend = line.toString().getBytes();
                     myThreadConnected.BTsendText((lineTemp));
-                    timeDelay(50);
+                    //timeDelay(50);
 
 //                    new Handler().postDelayed(new Runnable() {
 //
@@ -308,7 +310,8 @@ public class MainActivity extends ActionBarActivity {
 
 
 
-                    if (myUpdateState = true) {
+//                    if (myUpdateState = true) {
+                      if (myUpdateRound < 5) {
                         byte[] NewLine = "\n".getBytes();
                         myThreadConnected.write(NewLine);
                         // timeDelay(50);
@@ -317,22 +320,28 @@ public class MainActivity extends ActionBarActivity {
                         Log.e("SendBT_Count: ", String.valueOf(sendBTCount));
                         text.append('\n');
                         textStatus.append("\n");
+                        timeDelay(5);
+                        myUpdateRound++;
                     }
+                      else if (myUpdateRound == 5){
+                          timeDelay(4000);
+                          myUpdateRound = 0;
+                      }
                     else {
-                        timeDelay(30);
-                        myThreadConnected.BTsendText((line));
+                        //timeDelay(30);
+                        myUpdateRound = 0;
+                       // myThreadConnected.BTsendText((line));
 
                     }
 
                 }
-
+                myThreadConnected.BTsendText(("$G\n"));
                 br.close();
             }
             catch (IOException e) {
                 msg("Error");
             }
         }
-
     }
     private void showChooser() {
         // Use the GET_CONTENT intent from the utility class
@@ -564,6 +573,8 @@ public class MainActivity extends ActionBarActivity {
             InputStream in = null;
             OutputStream out = null;
 
+
+
             try {
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
@@ -671,7 +682,7 @@ public class MainActivity extends ActionBarActivity {
 //                                textStatus2.append("OK\n");
                                 textStatus2.append("o"+strReceived.toString());
                             }
-                            else if (roundCount > 2) {
+                            else if (roundCount > 3) {
                                 myStringArray[0] = null;
                                 roundCount = 0;
                             }
