@@ -311,7 +311,7 @@ public class MainActivity extends ActionBarActivity {
 
 
 //                    if (myUpdateState = true) {
-                      if (myUpdateRound < 5) {
+                      if (myUpdateRound < 4) {
                         byte[] NewLine = "\n".getBytes();
                         myThreadConnected.write(NewLine);
                         // timeDelay(50);
@@ -320,17 +320,19 @@ public class MainActivity extends ActionBarActivity {
                         Log.e("SendBT_Count: ", String.valueOf(sendBTCount));
                         text.append('\n');
                         textStatus.append("\n");
-                        timeDelay(5);
                         myUpdateRound++;
                     }
-                      else if (myUpdateRound == 5){
-                          timeDelay(4000);
+                      else if (myUpdateRound == 4){
+                          byte[] NewLine = "\n".getBytes();
+                          myThreadConnected.write(NewLine);
+                          timeDelay(4500);
                           myUpdateRound = 0;
+                        //  myThreadConnected.BTsendText(("\n"));
                       }
                     else {
                         //timeDelay(30);
                         myUpdateRound = 0;
-                       // myThreadConnected.BTsendText((line));
+                        myThreadConnected.BTsendText((line));
 
                     }
 
