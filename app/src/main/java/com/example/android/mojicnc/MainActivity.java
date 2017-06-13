@@ -10,6 +10,7 @@ http://android-er.blogspot.com/2014/12/make-bluetooth-connection-between.html
 - Bluetooth communication between Android devices
 http://android-er.blogspot.com/2014/12/bluetooth-communication-between-android.html
  */
+
 import android.animation.TypeConverter;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -325,7 +326,10 @@ public class MainActivity extends ActionBarActivity {
                       else if (myUpdateRound == 4){
                           byte[] NewLine = "\n".getBytes();
                           myThreadConnected.write(NewLine);
+//                          timeDelay(4500);
+                          myThreadConnected.BTsendText("M05\n");
                           timeDelay(4500);
+                          myThreadConnected.BTsendText("M03\n");
                           myUpdateRound = 0;
                         //  myThreadConnected.BTsendText(("\n"));
                       }
