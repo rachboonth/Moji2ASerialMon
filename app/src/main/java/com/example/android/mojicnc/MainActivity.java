@@ -14,6 +14,7 @@ http://android-er.blogspot.com/2014/12/bluetooth-communication-between-android.h
 import android.animation.TypeConverter;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -36,9 +37,11 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,8 +60,16 @@ import java.util.Timer;
 import java.util.UUID;
 
 import static android.R.id.list;
+import static android.R.id.toggle;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.example.android.mojicnc.R.id.BTsend;
+import static com.example.android.mojicnc.R.id.mDown;
+import static com.example.android.mojicnc.R.id.mHome;
+import static com.example.android.mojicnc.R.id.mLeft;
+import static com.example.android.mojicnc.R.id.mMachineStart;
+import static com.example.android.mojicnc.R.id.mRight;
+import static com.example.android.mojicnc.R.id.mStartAxis;
+import static com.example.android.mojicnc.R.id.mUp;
 import static com.example.android.mojicnc.R.id.time;
 
 
@@ -71,6 +82,7 @@ public class MainActivity extends ActionBarActivity {
 
     ArrayList<BluetoothDevice> pairedDeviceArrayList;
 
+    Button mHome, mUp, mDown, mLeft, mRight, mMachineStart, mStartAxis, mSerialStripe;
     TextView textInfo, textStatus, textStatus2, textByteCnt;
     ListView listViewPairedDevice;
     LinearLayout inputPane;
@@ -120,7 +132,114 @@ public class MainActivity extends ActionBarActivity {
         myOpenFileButton = (Button) findViewById(R.id.openFile) ;
         BTsend = (Button) findViewById(R.id.BTsend) ;
 
+        //================================ Dialog View //================================
+        final Switch manualOv = (Switch) findViewById(R.id.myMOSwitch); // Instance สวิตช์
+        manualOv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    final Dialog dialog = new Dialog(MainActivity.this);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); //ตั้ง attribute dialog
+                    dialog.setContentView(R.layout.customdialog); // เชื่อม dialog xml กับ main
+                    dialog.setCancelable(true); // ตั้งให้สามารถปิดเองไเด้
 
+                    // ประกาศ View instance
+                    Button button1 = (Button)dialog.findViewById(R.id.button1);
+                    mHome = (Button)dialog.findViewById(R.id.mHome);
+                    mUp = (Button)dialog.findViewById(R.id.mUp);
+                    mDown = (Button)dialog.findViewById(R.id.mDown);
+                    mLeft = (Button)dialog.findViewById(R.id.mLeft);
+                    mRight = (Button)dialog.findViewById(R.id.mRight);
+                    mMachineStart = (Button)dialog.findViewById(R.id.mMachineStart);
+                    mStartAxis = (Button)dialog.findViewById(R.id.mStartAxis);
+                    mSerialStripe = (Button)dialog.findViewById(R.id.mSerialStripe);
+
+
+                    //===================== ต่อจากนี้จะเป็นประกาศ onClickListener ของแต่ละปุ่ม =====================
+
+                    button1.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v) {
+                            Toast.makeText(getApplicationContext()
+                                    , "Close dialog", Toast.LENGTH_SHORT);
+                            dialog.cancel(); // ปิด dialog
+                            manualOv.setChecked(false); // คืนค่า switch state
+                        }
+                    });
+
+
+
+                    mHome.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("G0 X0 Y0 Z0\n");
+                            myThreadConnected.BTsendText("G0\n");
+
+                        }
+                    });
+                    mUp.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("G91 Y5\n");
+                            myThreadConnected.BTsendText("G0\n");
+                        }
+                    });
+                    mDown.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("G91 Y-5\n");
+                            myThreadConnected.BTsendText("G0\n");
+                        }
+                    });
+                    mLeft.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("G91 X-5\n");
+                            myThreadConnected.BTsendText("G0\n");
+                        }
+                    });
+                    mRight.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("G91 X5\n");
+                            myThreadConnected.BTsendText("G0\n");
+                        }
+                    });
+                    mMachineStart.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("$G\n");
+                            myThreadConnected.BTsendText("$$\n");
+                        }
+                    });
+                    mStartAxis.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("$X\n");
+                        }
+                    });
+                    mStartAxis.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("$X\n");
+                        }
+                    });
+
+                    mSerialStripe.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            myThreadConnected.BTsendText("?\n");
+                        }
+                    });
+
+                    TextView textView1 = (TextView)dialog.findViewById(R.id.textView1);
+                    textView1.setText("CNC Manual Override"); //ตั้ง Title
+                    dialog.show();
+                } else {
+                    //Shows nothing ... ;
+                }
+            }
+        });
+
+        //================================ Dialog View //================================
 
         btnSend.setOnClickListener(new View.OnClickListener(){
 
